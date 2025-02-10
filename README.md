@@ -4,5 +4,5 @@ Sur ce dépôt git vous trouverez tous les rendus du TP sur le cours de hardenin
 
 # [TP](./tp/README.md)
 
-- [**TP1** : Hardening basics](./tp/1/README.md)
-- [**TP2** : Syscalls](./tp/2/README.md)
+- [**TP1** : Hardening basics](./TP1/README.md)
+- [**TP2** : Syscalls](./TP2/README.md)
