@@ -561,3 +561,7 @@
     sudo semodule -l | grep meow
     meow
 ```
+
+---
+
+**Conclusion**: Ceci cnclu donc le TP2
